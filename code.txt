@@ -1,0 +1,234 @@
+#Create a simulator object
+set ns [new Simulator]
+#Open the NAM trace file
+set nf [open out.nam w]
+$ns namtrace-all $nf
+#Define a 'finish' procedure
+proc finish {} {
+global ns nf
+$ns flush-trace
+close $nf
+exec nam out.nam &
+exit 0
+}
+
+#Define different colors for data flows (for NAM)
+$ns color 1 Blue
+$ns color 2 Yellow
+$ns color 3 Red
+
+#Create six nodes
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+set n6 [$ns node]
+
+
+	
+#Create links between the nodes
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1Mb 10ms DropTail
+$ns duplex-link $n2 $n5 1Mb 10ms DropTail
+$ns duplex-link $n2 $n6 1Mb 10ms DropTail
+$ns duplex-link $n2 $n4 1Mb 10ms DropTail
+$ns duplex-link $n3 $n4 1Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1Mb 10ms DropTail
+
+#Give node position (for NAM)
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right
+$ns duplex-link-op $n2 $n5 orient right
+$ns duplex-link-op $n2 $n6 orient right-down
+$ns duplex-link-op $n2 $n4 orient down
+$ns duplex-link-op $n3 $n4 orient right
+$ns duplex-link-op $n3 $n1 orient up
+
+#Monitor the queue for the link between node 2 and node 3
+$ns duplex-link-op $n1 $n2 queuePos 0.5
+
+#Setup a TCP connection
+set tcp0 [new Agent/TCP]
+#Attach TCP agent to node n0
+$ns attach-agent $n0 $tcp0
+#Setup a TCP sink
+set sink0 [new Agent/TCPSink]
+#Attch TCP sink to node n3
+$ns attach-agent $n3 $sink0
+#Connect TCP agent with TCP sink
+$ns connect $tcp0 $sink0
+$tcp0 set fid_ 1
+#Setup a FTP over TCP connection
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+$ftp0 set type_ FTP
+
+#Setup a TCP connection
+set tcp1 [new Agent/TCP]
+#Attach TCP agent to node n6
+$ns attach-agent $n6 $tcp1
+#Setup a TCP sink
+set sink1 [new Agent/TCPSink]
+#Attch TCP sink to node n0
+$ns attach-agent $n0 $sink1
+#Connect TCP agent with TCP sink
+$ns connect $tcp1 $sink1
+$tcp1 set fid_ 2
+#Setup a FTP over TCP connection
+set ftp1 [new Application/FTP]
+$ftp1 attach-agent $tcp1
+$ftp1 set type_ FTP
+
+#Setup a TCP connection
+set tcp2 [new Agent/TCP]
+#Attach TCP agent to node n0
+$ns attach-agent $n5 $tcp2
+#Setup a TCP sink
+set sink2 [new Agent/TCPSink]
+#Attch TCP sink to node n3
+$ns attach-agent $n0 $sink2
+#Connect TCP agent with TCP sink
+$ns connect $tcp2 $sink2
+$tcp2 set fid_ 3
+#Setup a FTP over TCP connection
+set ftp2 [new Application/FTP]
+$ftp2 attach-agent $tcp2
+$ftp2 set type_ FTP
+
+$ns at 0.5 "$ftp0 start"
+$ns rtmodel-at 2.0 down $n1 $n2
+$ns rtmodel-at 4.0 up $n1 $n2
+$ns at 4.0 "$ftp0 stop"
+
+$ns at 1.0 "$ftp1 start"
+$ns rtmodel-at 2.5 down $n3 $n4
+$ns rtmodel-at 4.5 up $n3 $n4
+$ns at 5.0 "$ftp1 stop"
+
+$ns at 1.5 "$ftp2 start"
+
+$ns at 4.5 "$ftp2 stop"
+
+#Call the finish procedure after 5 seconds of simulation time
+$ns at 6.0 "finish"
+#Run the simulation
+$ns run
+
+
+
+
+
+
+
+
+#Create a simulator object
+set ns [new Simulator]
+#Open the nam trace file
+set nf [open out.nam w]
+$ns namtrace-all $nf
+#Define a 'finish' procedure
+proc finish {} {
+global ns nf
+$ns flush-trace
+#Close the trace file
+close $nf
+#Execute nam on the trace file
+exec nam out.nam &
+exit 0
+}
+
+#Define different colors for data flows (for NAM)
+$ns color 1 Blue
+
+#Create six nodes
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+
+#Create links between the nodes
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1Mb 10ms DropTail
+$ns duplex-link $n1 $n4 1Mb 10ms DropTail
+$ns duplex-link $n2 $n5 1Mb 10ms DropTail
+$ns duplex-link $n5 $n4 1Mb 10ms DropTail
+$ns duplex-link $n4 $n3 1Mb 10ms DropTail
+$ns duplex-link $n3 $n0 1Mb 10ms DropTail
+
+#Give node position (for NAM)
+
+$ns duplex-link-op $n2 $n1 orient left
+$ns duplex-link-op $n2 $n5 orient right-down
+$ns duplex-link-op $n1 $n4 orient right-down
+$ns duplex-link-op $n4 $n5 orient right
+$ns duplex-link-op $n4 $n3 orient left
+$ns duplex-link-op $n3 $n0 orient left
+$ns duplex-link-op $n0 $n1 orient right-up
+
+#Setup a TCP connection
+set tcp0 [new Agent/TCP]
+#Attach TCP agent to node n0
+$ns attach-agent $n0 $tcp0
+#Setup a TCP sink
+set sink0 [new Agent/TCPSink]
+#Attch TCP sink to node n2
+$ns attach-agent $n2 $sink0
+
+set tcp0 [new Agent/TCP]
+#Attach TCP agent to node n3
+$ns attach-agent $n3 $tcp0
+#Setup a TCP sink
+set sink0 [new Agent/TCPSink]
+#Attch TCP sink to node n5
+$ns attach-agent $n5 $sink0
+
+set tcp0 [new Agent/TCP]
+#Attach TCP agent to node n0
+$ns attach-agent $n0 $tcp0
+#Setup a TCP sink
+set sink2 [new Agent/TCPSink]
+#Attch TCP sink to node n4
+$ns attach-agent $n4 $sink0
+
+#Connect TCP agent with TCP sink
+$ns connect $tcp0 $sink0
+$tcp0 set fid_ 1
+#Setup a FTP over TCP connection
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+$ftp0 set type_ FTP
+
+#Connect TCP agent with TCP sink
+$ns connect $tcp0 $sink0
+$tcp0 set fid_ 1
+#Setup a FTP over TCP connection
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+$ftp0 set type_ FTP
+
+#Connect TCP agent with TCP sink
+$ns connect $tcp0 $sink0
+$tcp0 set fid_ 1
+#Setup a FTP over TCP connection
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+$ftp0 set type_ FTP
+
+$ns at 0.5 "$ftp0 start"
+$ns rtmodel-at 1.5 down $n3 $n4
+$ns rtmodel-at 4.0 up $n3 $n4
+$ns rtmodel-at 2.5 down $n1 $n4
+$ns rtmodel-at 4.5 up $n1 $n4
+$ns at 5.5 "$ftp0 stop"
+
+#Call the finish procedure after 5 seconds of simulation time
+
+$ns at 6.0 "finish"
+
+
+#Run the simulation
+$ns run
